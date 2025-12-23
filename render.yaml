@@ -1,6 +1,9 @@
 services:
   - type: web
     name: test-applepaynodeweb
-    env: node
+    runtime: node
     buildCommand: npm install
     startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.2
