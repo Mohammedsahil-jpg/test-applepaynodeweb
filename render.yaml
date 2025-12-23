@@ -3,8 +3,8 @@ services:
     name: test-applepaynodeweb
     runtime: node
     plan: free
-    buildCommand: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
-    startCommand: npm start
+    buildCommand: yarn install --frozen-lockfile || yarn install
+    startCommand: yarn start
     envVars:
       - key: NODE_VERSION
         value: 20.19.2
