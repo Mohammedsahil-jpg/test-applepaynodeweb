@@ -3,7 +3,7 @@ services:
     name: test-applepaynodeweb
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
