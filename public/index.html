@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Pay with PayPal</title>
+</head>
+<body>
+  <div id="paypal-button-container"></div>
+
+  <script src="applepay.js"></script>
+
+  <!-- PayPal SDK with Apple Pay enabled -->
+  <script
+    src="https://www.te-applepayexpresscheckout.qa.paypal.com/sdk/js?client-id=B_AVICKEzgw8JWtGmEGuZQZe22UeGfxHz5WwjuNvHpc5xet0oRkh0SvQJ6M4vXOJn7QPY-a1FnlXFKLf2E&buyer-country=US&currency=USD&components=buttons&enable-funding=applepay"
+    data-sdk-integration-source="developer-studio"
+    onload="initPayPalButtons()">
+  </script>
+</body>
+</html>
