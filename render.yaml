@@ -2,6 +2,7 @@ services:
   - type: web
     name: test-applepaynodeweb
     runtime: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
