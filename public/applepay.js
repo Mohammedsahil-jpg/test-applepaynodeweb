@@ -42,7 +42,7 @@ const ordersController = {
 };
 
 // Configuration for latency simulation (in milliseconds)
-const throttleMs = 2000; // 2 second delay
+const throttleMs = 5000; // 5 second delay
 
 // Utility function to simulate latency
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
