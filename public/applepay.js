@@ -41,6 +41,12 @@ const ordersController = {
   }
 };
 
+// Configuration for latency simulation (in milliseconds)
+const throttleMs = 2000; // 2 second delay
+
+// Utility function to simulate latency
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Initialize PayPal Buttons - called after SDK loads
 function initPayPalButtons() {
   window.paypal.Buttons({
@@ -57,7 +63,8 @@ function initPayPalButtons() {
     async createOrder() {
       try {
         const orderData = await ordersController.createOrder();
-        console.log('Order created:', orderData);
+        await sleep(throttleMs);
+        console.log(`Order created with sleep for ${throttleMs}:`, orderData);
 
         if (orderData.id) {
           return orderData.id;
