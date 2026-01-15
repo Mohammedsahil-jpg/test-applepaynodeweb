@@ -128,6 +128,17 @@
       console.log(message);
     }
 
+    // Fetch client token from API
+    async function getClientToken() {
+      setMessage("📡 Fetching client token...");
+      const response = await fetch(
+        "/web-sdk/demo/api/paypal/browser-safe-client-token",
+      );
+      const tokens = await response.json();
+      setMessage("✅ Successfully fetched client token", 'success');
+      return tokens.access_token;
+    }
+
     // Create a PayPal order using existing API
     async function createOrder() {
       setMessage("📦 Creating PayPal order...");
@@ -172,16 +183,13 @@
       try {
         setMessage("🔧 Initializing PayPal SDK...");
 
-        // Get auth token from localStorage
-        const auth = localStorage.getItem('auth');
-        if (!auth) {
-          throw new Error('No auth token found in localStorage. Please set auth token first.');
-        }
+        // Fetch client token from API
+        const clientToken = await getClientToken();
 
-        // Use the client ID and auth token
+        // Use the client ID and client token
         const sdkInstance = await window.paypal.createInstance({
           clientId: 'B_AVICKEzgw8JWtGmEGuZQZe22UeGfxHz5WwjuNvHpc5xet0oRkh0SvQJ6M4vXOJn7QPY-a1FnlXFKLf2E',
-          // clientToken: auth,
+          clientToken: clientToken,
           components: ["brandedapplepay-payments"],
         });
 
