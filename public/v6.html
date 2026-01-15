@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Branded Apple Pay - Merchant Integration Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #0070ba;
+      margin-bottom: 10px;
+    }
+    .info-box {
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .info-box h3 {
+      margin-top: 0;
+      color: #f57c00;
+    }
+    .info-box ul {
+      margin: 10px 0;
+    }
+    #applepay-container {
+      margin: 30px 0;
+      text-align: center;
+    }
+    apple-pay-button {
+      --apple-pay-button-width: 200px;
+      --apple-pay-button-height: 50px;
+      --apple-pay-button-border-radius: 5px;
+    }
+    #message {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .status {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    .error {
+      color: #f44336;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🍎 Branded Apple Pay Integration Test</h1>
+    <p><strong>Testing environment:</strong> www.te-applepayexpresscheckout.qa.paypal.com</p>
+
+    <div class="info-box">
+      <h3>⚠️ Requirements</h3>
+      <ul>
+        <li>Must use <strong>Safari browser</strong> on macOS or iOS</li>
+        <li>Apple Pay must be set up with test cards in Wallet</li>
+        <li>Test billing and shipping addresses configured</li>
+        <li>HTTPS required for Apple Pay to work</li>
+      </ul>
+    </div>
+
+    <div class="info-box">
+      <h3>✨ What's Being Tested</h3>
+      <ul>
+        <li><code>productCode</code> defaults to "INVOICING" (not passed by merchant)</li>
+        <li><code>merchantId</code> is NOT required (removed parameter)</li>
+        <li>Country codes are uppercased before sending to backend</li>
+      </ul>
+    </div>
+
+    <section>
+      <h2>Payment Button</h2>
+      <div id="applepay-container">
+        <p>Loading Apple Pay button...</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Transaction Log</h2>
+      <div id="message">Initializing...</div>
+    </section>
+  </div>
+
+  <!-- Load Apple Pay SDK from Apple -->
+  <script src="https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js"></script>
+
+  <!-- Load PayPal SDK from your test environment -->
+  <script src="https://www.te-applepayexpresscheckout.qa.paypal.com/web-sdk/v6/core"></script>
+
+  <script>
+    // Helper function to display messages
+    function setMessage(message, type = 'info') {
+      const messageEl = document.querySelector("#message");
+      const timestamp = new Date().toLocaleTimeString();
+      const formattedMessage = `[${timestamp}] ${message}\n`;
+
+      if (type === 'error') {
+        messageEl.innerHTML += `<span class="error">${formattedMessage}</span>`;
+      } else if (type === 'success') {
+        messageEl.innerHTML += `<span class="status">${formattedMessage}</span>`;
+      } else {
+        messageEl.textContent += formattedMessage;
+      }
+
+      // Auto-scroll to bottom
+      messageEl.scrollTop = messageEl.scrollHeight;
+      console.log(message);
+    }
+
+    // Create a PayPal order using existing API
+    async function createOrder() {
+      setMessage("📦 Creating PayPal order...");
+
+      const HOST_URL = 'https://msmaster.qa.paypal.com';
+      const auth = localStorage.getItem('auth');
+
+      if (!auth) {
+        throw new Error('No auth token found in localStorage. Please set auth token first.');
+      }
+
+      const response = await fetch(`${HOST_URL}/v2/checkout/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth}`,
+        },
+        body: JSON.stringify({
+          intent: 'CAPTURE',
+          purchase_units: [{
+            amount: {
+              currency_code: 'USD',
+              value: '10.00'
+            }
+          }]
+        })
+      });
+
+      const order = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`Order creation failed: ${JSON.stringify(order)}`);
+      }
+
+      setMessage(`✅ Order created: ${order.id}`, 'success');
+
+      return order.id;
+    }
+
+    // Initialize the branded Apple Pay integration
+    (async () => {
+      try {
+        setMessage("🔧 Initializing PayPal SDK...");
+
+        // Get auth token from localStorage
+        const auth = localStorage.getItem('auth');
+        if (!auth) {
+          throw new Error('No auth token found in localStorage. Please set auth token first.');
+        }
+
+        // Use the client ID and auth token
+        const sdkInstance = await window.paypal.createInstance({
+          clientId: 'B_AVICKEzgw8JWtGmEGuZQZe22UeGfxHz5WwjuNvHpc5xet0oRkh0SvQJ6M4vXOJn7QPY-a1FnlXFKLf2E',
+          // clientToken: auth,
+          components: ["brandedapplepay-payments"],
+        });
+
+        setMessage("✅ PayPal SDK initialized", 'success');
+        setMessage("🔧 Creating branded Apple Pay session...");
+
+        // Note: No productCode or merchantId needed!
+        // productCode defaults to "INVOICING"
+        const paypalSdkApplePayPaymentSession =
+          await sdkInstance.createBrandedApplePayOneTimePaymentSession();
+
+        setMessage("✅ Branded Apple Pay session created", 'success');
+        setMessage("🔧 Fetching Apple Pay configuration...");
+
+        const { merchantCapabilities, supportedNetworks } =
+          await paypalSdkApplePayPaymentSession.config();
+
+        setMessage(`✅ Apple Pay config received:
+  Networks: ${supportedNetworks.join(', ')}
+  Capabilities: ${merchantCapabilities.join(', ')}`, 'success');
+
+        // Render Apple Pay button
+        document.getElementById("applepay-container").innerHTML =
+          '<apple-pay-button id="btn-appl" buttonstyle="black" type="buy" locale="en"></apple-pay-button>';
+
+        setMessage("✅ Apple Pay button rendered", 'success');
+        setMessage("👆 Click the Apple Pay button to start payment", 'info');
+
+        document.getElementById("btn-appl").addEventListener("click", async () => {
+          try {
+            const paymentRequest = {
+              countryCode: "US",
+              currencyCode: "USD",
+              merchantCapabilities,
+              supportedNetworks,
+              requiredBillingContactFields: [
+                "name",
+                "phone",
+                "email",
+                "postalAddress",
+              ],
+              requiredShippingContactFields: [
+                "postalAddress",
+              ],
+              total: {
+                label: "Test Payment (Card NOT charged)",
+                amount: "10.00",
+                type: "final",
+              },
+            };
+
+            setMessage("🍎 Starting Apple Pay session...");
+            let appleSdkApplePayPaymentSession = new ApplePaySession(4, paymentRequest);
+
+            // Merchant validation
+            appleSdkApplePayPaymentSession.onvalidatemerchant = (event) => {
+              setMessage("🔐 Validating merchant with Apple...");
+              setMessage(`   Validation URL: ${event.validationURL}`);
+
+              paypalSdkApplePayPaymentSession
+                .validateMerchant({
+                  validationUrl: event.validationURL,
+                })
+                .then((payload) => {
+                  setMessage("✅ Merchant validation successful!", 'success');
+                  appleSdkApplePayPaymentSession.completeMerchantValidation(
+                    payload.merchantSession,
+                  );
+                })
+                .catch((err) => {
+                  setMessage(`❌ Merchant validation failed: ${err.message}`, 'error');
+                  console.error(err);
+                  appleSdkApplePayPaymentSession.abort();
+                });
+            };
+
+            // Payment method selection
+            appleSdkApplePayPaymentSession.onpaymentmethodselected = () => {
+              setMessage("💳 Payment method selected");
+              appleSdkApplePayPaymentSession.completePaymentMethodSelection({
+                newTotal: paymentRequest.total,
+              });
+            };
+
+            // Payment authorization
+            appleSdkApplePayPaymentSession.onpaymentauthorized = async (event) => {
+              try {
+                setMessage("✅ Payment authorized by user", 'success');
+
+                // Log country codes (should be lowercase from Apple)
+                setMessage(`📍 Billing country: ${event.payment.billingContact?.countryCode} (lowercase from Apple)`);
+                if (event.payment.shippingContact?.countryCode) {
+                  setMessage(`📍 Shipping country: ${event.payment.shippingContact?.countryCode} (lowercase from Apple)`);
+                }
+
+                setMessage("📦 Creating PayPal order...");
+                const orderId = await createOrder();
+
+                setMessage("🔄 Confirming order with branded Apple Pay...");
+                setMessage("   (Country codes will be uppercased automatically)");
+
+                await paypalSdkApplePayPaymentSession.confirmOrder({
+                  orderId: orderId,
+                  token: event.payment.token,
+                  applePayPaymentInput: {
+                    token: event.payment.token.paymentData,
+                    billingContact: event.payment.billingContact,
+                    shippingContact: event.payment.shippingContact,
+                  }
+                });
+
+                setMessage("✅ Order confirmed successfully!", 'success');
+                setMessage("🎉 Payment complete!", 'success');
+
+                appleSdkApplePayPaymentSession.completePayment({
+                  status: window.ApplePaySession.STATUS_SUCCESS,
+                });
+              } catch (err) {
+                setMessage(`❌ Payment failed: ${err.message}`, 'error');
+                console.error(err);
+                appleSdkApplePayPaymentSession.completePayment({
+                  status: window.ApplePaySession.STATUS_FAILURE,
+                });
+              }
+            };
+
+            // Payment cancellation
+            appleSdkApplePayPaymentSession.oncancel = () => {
+              setMessage("❌ Payment cancelled by user", 'error');
+            };
+
+            appleSdkApplePayPaymentSession.begin();
+
+          } catch (err) {
+            setMessage(`❌ Error: ${err.message}`, 'error');
+            console.error(err);
+          }
+        });
+
+      } catch (e) {
+        setMessage(`❌ Initialization failed: ${e.message}`, 'error');
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
