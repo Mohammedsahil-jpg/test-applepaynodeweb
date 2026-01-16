@@ -320,11 +320,8 @@
                 await paypalSdkApplePayPaymentSession.confirmOrder({
                   orderId: orderId,
                   token: event.payment.token,
-                  applePayPaymentInput: {
-                    token: event.payment.token.paymentData,
-                    billingContact: event.payment.billingContact,
-                    shippingContact: event.payment.shippingContact,
-                  }
+                  billingContact: event.payment.billingContact,
+                  shippingContact: event.payment.shippingContact,
                 });
 
                 setMessage("✅ Order confirmed successfully!", 'success');
