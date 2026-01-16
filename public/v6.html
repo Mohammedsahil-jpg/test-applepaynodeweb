@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,38 +13,46 @@
       padding: 20px;
       background: #f5f5f5;
     }
+
     .container {
       background: white;
       padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     h1 {
       color: #0070ba;
       margin-bottom: 10px;
     }
+
     .info-box {
       background: #fff8e1;
       border-left: 4px solid #ffc107;
       padding: 15px;
       margin: 20px 0;
     }
+
     .info-box h3 {
       margin-top: 0;
       color: #f57c00;
     }
+
     .info-box ul {
       margin: 10px 0;
     }
+
     #applepay-container {
       margin: 30px 0;
       text-align: center;
     }
+
     apple-pay-button {
       --apple-pay-button-width: 200px;
       --apple-pay-button-height: 50px;
       --apple-pay-button-border-radius: 5px;
     }
+
     #message {
       background: #f5f5f5;
       padding: 15px;
@@ -55,16 +64,19 @@
       overflow-y: auto;
       margin-top: 20px;
     }
+
     .status {
       color: #4caf50;
       font-weight: bold;
     }
+
     .error {
       color: #f44336;
       font-weight: bold;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🍎 Branded Apple Pay Integration Test</h1>
@@ -226,16 +238,29 @@
               merchantCapabilities,
               supportedNetworks,
               requiredBillingContactFields: [
+                "postalAddress",
                 "name",
                 "phone",
                 "email",
-                "postalAddress",
               ],
               requiredShippingContactFields: [
                 "postalAddress",
+                "name",
+                "phone",
+                "email",
               ],
+              shippingContact: {
+                givenName: "Test",
+                familyName: "User",
+                addressLines: ["123 Test St"],
+                locality: "San Jose",
+                administrativeArea: "CA",
+                postalCode: "95131",
+                country: "United States",
+                countryCode: "US",
+              },
               total: {
-                label: "Test Payment (Card NOT charged)",
+                label: "Demo (Card is not charged)",
                 amount: "10.00",
                 type: "final",
               },
@@ -337,4 +362,5 @@
     })();
   </script>
 </body>
+
 </html>
