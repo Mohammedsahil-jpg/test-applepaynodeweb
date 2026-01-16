@@ -254,6 +254,7 @@
                   validationUrl: event.validationURL,
                 })
                 .then((payload) => {
+                  console.log("Payload: ", payload)
                   setMessage("✅ Merchant validation successful!", 'success');
                   appleSdkApplePayPaymentSession.completeMerchantValidation(
                     payload.merchantSession,
