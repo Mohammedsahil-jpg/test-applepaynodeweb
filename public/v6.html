@@ -355,11 +355,11 @@
 
                 // Show success alert with capture transaction ID
                 const transactionId = captureData?.purchase_units?.[0]?.payments?.captures?.[0]?.id || orderId;
-                alert(`Payment successful! Order ID: ${orderId}\nTransaction ID: ${transactionId}`);
 
                 appleSdkApplePayPaymentSession.completePayment({
                   status: window.ApplePaySession.STATUS_SUCCESS,
                 });
+                alert(`Payment successful! Order ID: ${orderId}\nTransaction ID: ${transactionId}`);
               } catch (err) {
                 setMessage(`❌ Payment failed: ${err.message}`, 'error');
                 console.error(err);
