@@ -91,16 +91,6 @@
         <li>HTTPS required for Apple Pay to work</li>
       </ul>
     </div>
-
-    <div class="info-box">
-      <h3>✨ What's Being Tested</h3>
-      <ul>
-        <li><code>productCode</code> defaults to "INVOICING" (not passed by merchant)</li>
-        <li><code>merchantId</code> is NOT required (removed parameter)</li>
-        <li>Country codes are uppercased before sending to backend</li>
-      </ul>
-    </div>
-
     <section>
       <h2>Payment Button</h2>
       <div id="applepay-container">
@@ -188,6 +178,38 @@
       setMessage(`✅ Order created: ${order.id}`, 'success');
 
       return order.id;
+    }
+
+    // Capture a PayPal order
+    async function captureOrder(orderId) {
+      setMessage(`💰 Capturing order: ${orderId}...`);
+
+      const HOST_URL = 'https://msmaster.qa.paypal.com';
+      const auth = localStorage.getItem('auth');
+
+      if (!auth) {
+        throw new Error('No auth token found in localStorage. Please set auth token first.');
+      }
+
+      const response = await fetch(`${HOST_URL}/v2/checkout/orders/${orderId}/capture`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth}`,
+        },
+        body: JSON.stringify({})
+      });
+
+      const captureData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`Order capture failed: ${JSON.stringify(captureData)}`);
+      }
+
+      setMessage(`✅ Order captured successfully!`, 'success');
+      setMessage(`📄 Capture details: ${JSON.stringify(captureData, null, 2)}`);
+
+      return captureData;
     }
 
     // Initialize the branded Apple Pay integration
@@ -325,7 +347,15 @@
                 });
 
                 setMessage("✅ Order confirmed successfully!", 'success');
+
+                // Capture the order
+                const captureData = await captureOrder(orderId);
+
                 setMessage("🎉 Payment complete!", 'success');
+
+                // Show success alert with capture transaction ID
+                const transactionId = captureData?.purchase_units?.[0]?.payments?.captures?.[0]?.id || orderId;
+                alert(`Payment successful! Order ID: ${orderId}\nTransaction ID: ${transactionId}`);
 
                 appleSdkApplePayPaymentSession.completePayment({
                   status: window.ApplePaySession.STATUS_SUCCESS,
@@ -333,6 +363,10 @@
               } catch (err) {
                 setMessage(`❌ Payment failed: ${err.message}`, 'error');
                 console.error(err);
+
+                // Show error alert
+                alert(`Payment failed: ${err.message}`);
+
                 appleSdkApplePayPaymentSession.completePayment({
                   status: window.ApplePaySession.STATUS_FAILURE,
                 });
