@@ -220,20 +220,20 @@
         // Fetch client token from API
         const clientToken = await getClientToken();
 
-        // Use the client ID and client token
+        // Use the client token
         const sdkInstance = await window.paypal.createInstance({
-          clientId: 'B_AVICKEzgw8JWtGmEGuZQZe22UeGfxHz5WwjuNvHpc5xet0oRkh0SvQJ6M4vXOJn7QPY-a1FnlXFKLf2E',
           clientToken: clientToken,
-          components: ["brandedapplepay-payments"],
+          components: ["applepay-payments"],
         });
 
         setMessage("✅ PayPal SDK initialized", 'success');
         setMessage("🔧 Creating branded Apple Pay session...");
 
-        // Note: No productCode or merchantId needed!
-        // productCode defaults to "INVOICING"
+        // Create session with branded flow
         const paypalSdkApplePayPaymentSession =
-          await sdkInstance.createBrandedApplePayOneTimePaymentSession();
+          await sdkInstance.createApplePayOneTimePaymentSession({
+            flow: "branded",
+          });
 
         setMessage("✅ Branded Apple Pay session created", 'success');
         setMessage("🔧 Fetching Apple Pay configuration...");
@@ -328,17 +328,18 @@
                 setMessage("✅ Payment authorized by user", 'success');
 
                 // Log country codes (should be lowercase from Apple)
-                setMessage(`📍 Billing country: ${event.payment.billingContact?.countryCode} (lowercase from Apple)`);
+                setMessage(`📍 Billing country: ${event.payment.billingContact?.countryCode}`);
                 if (event.payment.shippingContact?.countryCode) {
-                  setMessage(`📍 Shipping country: ${event.payment.shippingContact?.countryCode} (lowercase from Apple)`);
+                  setMessage(`📍 Shipping country: ${event.payment.shippingContact?.countryCode}`);
                 }
-
-                setMessage("📦 Creating PayPal order...");
+                // BRANDED FLOW: Create order
+                setMessage("📦 Creating PayPal order (branded flow)...");
                 const orderId = await createOrder();
+                setMessage(`✅ Order created: ${orderId}`, 'success');
 
-                setMessage("🔄 Confirming order with branded Apple Pay...");
-                setMessage("   (Country codes will be uppercased automatically)");
+                setMessage("🔄 Confirming PayPal order with Apple Pay payment (branded flow)...");
 
+                // Branded flow: Pass structured objects (not serialized strings)
                 await paypalSdkApplePayPaymentSession.confirmOrder({
                   orderId: orderId,
                   token: event.payment.token,
@@ -346,12 +347,14 @@
                   shippingContact: event.payment.shippingContact,
                 });
 
-                setMessage("✅ Order confirmed successfully!", 'success');
+                setMessage(`✅ Order ${orderId} confirmed with branded Apple Pay flow!`, 'success');
 
                 // Capture the order
+                setMessage(`💰 Capturing order ${orderId}...`);
                 const captureData = await captureOrder(orderId);
 
                 setMessage("🎉 Payment complete!", 'success');
+                setMessage(`📄 ${JSON.stringify(captureData, null, 2)}`);
 
                 // Show success alert with capture transaction ID
                 const transactionId = captureData?.purchase_units?.[0]?.payments?.captures?.[0]?.id || orderId;
