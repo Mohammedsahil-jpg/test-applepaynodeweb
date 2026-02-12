@@ -28,7 +28,7 @@ app.get('/web-sdk/demo/api/paypal/browser-safe-client-token', async (_req, res) 
     const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
     // Request client token from PayPal OAuth2 endpoint (test environment)
-    const response = await fetch('https://api.msmaster.qa.paypal.com/v1/oauth2/token', {
+    const response = await fetch('https://msmaster.qa.paypal.com/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${credentials}`,
