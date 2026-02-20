@@ -133,27 +133,12 @@
     // Fetch client token from API
     async function getClientToken() {
       setMessage("📡 Fetching client token...");
-      try {
-        const response = await fetch(
-          "/web-sdk/demo/api/paypal/browser-safe-client-token",
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const tokens = await response.json();
-
-        if (!tokens.access_token) {
-          throw new Error('No access_token in response');
-        }
-
-        setMessage("✅ Successfully fetched client token", 'success');
-        return tokens.access_token;
-      } catch (error) {
-        setMessage(`❌ Failed to fetch client token: ${error.message}`, 'error');
-        throw error;
-      }
+      const response = await fetch(
+        "/web-sdk/demo/api/paypal/browser-safe-client-token",
+      );
+      const tokens = await response.json();
+      setMessage("✅ Successfully fetched client token", 'success');
+      return tokens.access_token;
     }
 
     // Create a PayPal order using existing API
