@@ -222,7 +222,7 @@
 
         // Use the client token with clientId (working configuration)
         const sdkInstance = await window.paypal.createInstance({
-          clientToken: clientToken,
+          clientToken,
           components: ["applepay-payments"],
         });
 
