@@ -220,8 +220,9 @@
         // Fetch client token from API
         const clientToken = await getClientToken();
 
-        // Use the client token
+        // Use the client token with clientId (working configuration)
         const sdkInstance = await window.paypal.createInstance({
+          clientId: 'B_AVICKEzgw8JWtGmEGuZQZe22UeGfxHz5WwjuNvHpc5xet0oRkh0SvQJ6M4vXOJn7QPY-a1FnlXFKLf2E',
           clientToken: clientToken,
           components: ["applepay-payments"],
         });
