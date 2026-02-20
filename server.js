@@ -36,8 +36,8 @@ app.get('/web-sdk/demo/api/paypal/browser-safe-client-token', async (_req, res) 
       },
       body: 'grant_type=client_credentials&response_type=client_token&intent=sdk_init'
     });
-
     const data = await response.json();
+    console.log(JSON.stringify(data))
 
     if (!response.ok) {
       throw new Error(`OAuth2 request failed: ${JSON.stringify(data)}`);
