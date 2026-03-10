@@ -28,14 +28,7 @@ app.get('/web-sdk/demo/api/paypal/browser-safe-client-token', async (_req, res) 
     const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
     // Request client token from PayPal OAuth2 endpoint (test environment)
-    const response = await fetch('https://msmaster.qa.paypal.com/v1/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'grant_type=client_credentials&response_type=client_token&intent=sdk_init'
-    });
+    const response = await fetch('https://www.te-applepayexpresscheckout.qa.paypal.com/web-sdk/demo/api/paypal/browser-safe-client-token');
     const data = await response.json();
     console.log(JSON.stringify(data))
 
