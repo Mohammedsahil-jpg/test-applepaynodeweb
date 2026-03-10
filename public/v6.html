@@ -132,14 +132,14 @@
 
     // Fetch client token from API
     async function getClientToken() {
-      setMessage("📡 Fetching client token...");
-      const response = await fetch(
-        "https://www.te-applepayexpresscheckout.qa.paypal.com/web-sdk/demo/api/paypal/browser-safe-client-token",
-      );
-      const tokens = await response.json();
-      setMessage("✅ Successfully fetched client token", 'success');
-      return tokens.access_token;
-    }
+    setMessage("Fetching client token...");
+    const response = await fetch(
+      "/web-sdk/demo/api/paypal/browser-safe-client-token",
+    );
+    const tokens = await response.json();
+    setMessage("Successfully fetched client token");
+    return tokens.access_token;
+  }
 
     // Create a PayPal order using existing API
     async function createOrder() {
